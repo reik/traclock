@@ -1,0 +1,544 @@
+# Phase 1 — Foundation
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Deliverable:** Runnable app with navigation, no UI yet.
+
+---
+
+## Task 1: Project Setup & Configuration
+
+**Files:**
+- Create: `vite.config.ts`
+- Create: `tailwind.config.js`
+- Create: `postcss.config.js`
+- Create: `src/test-setup.ts`
+- Modify: `src/index.css`
+- Modify: `tsconfig.json`
+
+- [ ] **Step 1: Scaffold Vite project**
+
+```bash
+cd /Users/reikurata/dev/traclock
+npm create vite@latest . -- --template react-ts
+```
+
+Accept overwrite prompts. Then:
+
+```bash
+npm install
+```
+
+- [ ] **Step 2: Install runtime dependencies**
+
+```bash
+npm install zustand react-router-dom react-hook-form @hookform/resolvers zod clsx tailwind-merge
+```
+
+- [ ] **Step 3: Install Tailwind CSS v3**
+
+```bash
+npm install -D tailwindcss@3 postcss autoprefixer
+npx tailwindcss init -p
+```
+
+- [ ] **Step 4: Install test dependencies**
+
+```bash
+npm install -D vitest jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event
+```
+
+- [ ] **Step 5: Configure Tailwind — write `tailwind.config.js`**
+
+```js
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  theme: { extend: {} },
+  plugins: [],
+}
+```
+
+- [ ] **Step 6: Replace `src/index.css` with Tailwind directives**
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+- [ ] **Step 7: Configure Vitest — replace `vite.config.ts`**
+
+```ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test-setup.ts'],
+  },
+})
+```
+
+- [ ] **Step 8: Create `src/test-setup.ts`**
+
+```ts
+import '@testing-library/jest-dom'
+```
+
+- [ ] **Step 9: Update `tsconfig.json` — ensure strict mode**
+
+Open `tsconfig.json` and verify (or add) under `"compilerOptions"`:
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
+}
+```
+
+- [ ] **Step 10: Verify setup**
+
+```bash
+npm run build
+```
+
+Expected: build succeeds with no errors.
+
+- [ ] **Step 11: Initialise git and make first commit**
+
+```bash
+git init
+git add .
+git commit -m "chore: scaffold Vite + React + TS + Tailwind + Vitest"
+```
+
+- [ ] **Step 12: Install the GitHub CLI (if not already installed)**
+
+```bash
+brew install gh
+```
+
+Verify:
+
+```bash
+gh --version
+```
+
+Expected: prints `gh version 2.x.x`.
+
+- [ ] **Step 13: Authenticate with GitHub**
+
+```bash
+gh auth login
+```
+
+Follow the interactive prompts — choose **GitHub.com → HTTPS → Login with a web browser**. Complete the OAuth flow in the browser.
+
+Verify:
+
+```bash
+gh auth status
+```
+
+Expected: `Logged in to github.com as <your-username>`.
+
+- [ ] **Step 14: Create the remote repository and push**
+
+```bash
+gh repo create traclock --public --source=. --remote=origin --push
+```
+
+Flags:
+- `--public` — makes the repo public (swap for `--private` if preferred)
+- `--source=.` — uses the current directory as the repo root
+- `--remote=origin` — registers the new repo as `origin`
+- `--push` — pushes the current branch immediately
+
+Expected output:
+```
+✓ Created repository <your-username>/traclock on GitHub
+✓ Added remote https://github.com/<your-username>/traclock.git
+✓ Pushed commits to https://github.com/<your-username>/traclock.git
+```
+
+- [ ] **Step 15: Confirm on GitHub**
+
+Open the URL printed above in your browser and verify the scaffolded files are visible.
+
+> **From Task 2 onwards:** after each task's commit step, push with:
+> ```bash
+> git push
+> ```
+
+---
+
+## Task 2: Core Types, Schemas & Utilities
+
+**Files:**
+- Create: `src/types/index.ts`
+- Create: `src/schemas/index.ts`
+- Create: `src/utils/cn.ts`
+- Create: `src/utils/time.ts`
+- Create: `src/utils/time.test.ts`
+- Create: `src/utils/sound.ts`
+
+- [ ] **Step 1: Write failing tests for time utilities**
+
+Create `src/utils/time.test.ts`:
+
+```ts
+import { describe, it, expect } from 'vitest'
+import { formatTime, toSeconds, fromSeconds } from './time'
+
+describe('formatTime', () => {
+  it('should_format_zero_as_00:00', () => {
+    expect(formatTime(0)).toBe('00:00')
+  })
+  it('should_format_90_seconds_as_01:30', () => {
+    expect(formatTime(90)).toBe('01:30')
+  })
+  it('should_pad_single_digit_seconds', () => {
+    expect(formatTime(65)).toBe('01:05')
+  })
+})
+
+describe('toSeconds', () => {
+  it('should_convert_1_min_30_sec_to_90', () => {
+    expect(toSeconds(1, 30)).toBe(90)
+  })
+  it('should_handle_zero_minutes', () => {
+    expect(toSeconds(0, 45)).toBe(45)
+  })
+})
+
+describe('fromSeconds', () => {
+  it('should_convert_90_to_1_min_30_sec', () => {
+    expect(fromSeconds(90)).toEqual({ minutes: 1, seconds: 30 })
+  })
+  it('should_convert_65_to_1_min_5_sec', () => {
+    expect(fromSeconds(65)).toEqual({ minutes: 1, seconds: 5 })
+  })
+})
+```
+
+- [ ] **Step 2: Run tests to confirm they fail**
+
+```bash
+npx vitest run src/utils/time.test.ts
+```
+
+Expected: FAIL — `time` module not found.
+
+- [ ] **Step 3: Create `src/types/index.ts`**
+
+```ts
+export interface TodoItem {
+  id: string
+  description: string
+  durationSeconds: number
+}
+
+export interface TodoList {
+  id: string
+  name: string
+  items: TodoItem[]
+  createdAt: number
+}
+```
+
+- [ ] **Step 4: Create `src/schemas/index.ts`**
+
+```ts
+import { z } from 'zod'
+
+export const todoListSchema = z.object({
+  name: z.string().min(1, 'List name is required'),
+})
+
+export type TodoListFormData = z.infer<typeof todoListSchema>
+
+export const todoItemSchema = z.object({
+  description: z.string().min(1, 'Description is required'),
+  minutes: z.number().int().min(0, 'Min 0').max(99, 'Max 99'),
+  seconds: z.number().int().min(0, 'Min 0').max(59, 'Max 59'),
+})
+
+export type TodoItemFormData = z.infer<typeof todoItemSchema>
+```
+
+- [ ] **Step 5: Create `src/utils/time.ts`**
+
+```ts
+export function formatTime(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+export function toSeconds(minutes: number, seconds: number): number {
+  return minutes * 60 + seconds
+}
+
+export function fromSeconds(totalSeconds: number): { minutes: number; seconds: number } {
+  return {
+    minutes: Math.floor(totalSeconds / 60),
+    seconds: totalSeconds % 60,
+  }
+}
+```
+
+- [ ] **Step 6: Run tests — confirm they pass**
+
+```bash
+npx vitest run src/utils/time.test.ts
+```
+
+Expected: 7 tests PASS.
+
+- [ ] **Step 7: Create `src/utils/cn.ts`**
+
+```ts
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs))
+}
+```
+
+- [ ] **Step 8: Create `src/utils/sound.ts`**
+
+```ts
+function playTone(
+  frequency: number,
+  duration: number,
+  type: OscillatorType = 'sine',
+  volume = 0.3
+): void {
+  const ctx = new AudioContext()
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  osc.frequency.value = frequency
+  osc.type = type
+  gain.gain.setValueAtTime(volume, ctx.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
+  osc.start(ctx.currentTime)
+  osc.stop(ctx.currentTime + duration)
+}
+
+export function playWarningSound(): void {
+  playTone(880, 0.25, 'sine', 0.2)
+}
+
+export function playNextSound(): void {
+  playTone(440, 0.3, 'sine', 0.4)
+  setTimeout(() => playTone(550, 0.3, 'sine', 0.4), 200)
+}
+
+export function playCompleteSound(): void {
+  playTone(523, 0.3, 'sine', 0.5)
+  setTimeout(() => playTone(659, 0.3, 'sine', 0.5), 300)
+  setTimeout(() => playTone(784, 0.5, 'sine', 0.5), 600)
+}
+```
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add src/types src/schemas src/utils
+git commit -m "feat: add core types, schemas, and utilities"
+```
+
+---
+
+## Task 3: Zustand Store
+
+**Files:**
+- Create: `src/stores/listsStore.ts`
+
+- [ ] **Step 1: Create `src/stores/listsStore.ts`**
+
+```ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import type { TodoList, TodoItem } from '../types'
+
+interface ListsState {
+  lists: TodoList[]
+  addList: (name: string) => void
+  deleteList: (id: string) => void
+  addItem: (listId: string, item: Omit<TodoItem, 'id'>) => void
+  deleteItem: (listId: string, itemId: string) => void
+  updateItem: (listId: string, itemId: string, patch: Omit<TodoItem, 'id'>) => void
+  swapItems: (listId: string, indexA: number, indexB: number) => void
+}
+
+    const result: string[][] = [][];
+
+
+export const useListsStore = create<ListsState>()(
+  persist( 
+    (set) => ({
+      lists: [],
+
+      addList: (name) =>
+        set((state) => ({
+          lists: [
+            ...state.lists,
+            {
+              id: crypto.randomUUID(),
+              name,
+              items: [],
+              createdAt: Date.now(),
+            },
+          ],
+        })),
+
+      deleteList: (id) =>
+        set((state) => ({ lists: state.lists.filter((l) => l.id !== id) })),
+
+      addItem: (listId, item) =>
+        set((state) => ({
+          lists: state.lists.map((l) =>
+            l.id === listId
+              ? { ...l, items: [...l.items, { id: crypto.randomUUID(), ...item }] }
+              : l
+          ),
+        })),
+
+      deleteItem: (listId, itemId) =>
+        set((state) => ({
+          lists: state.lists.map((l) =>
+            l.id === listId
+              ? { ...l, items: l.items.filter((i) => i.id !== itemId) }
+              : l
+          ),
+        })),
+
+      updateItem: (listId, itemId, patch) =>
+        set((state) => ({
+          lists: state.lists.map((l) =>
+            l.id === listId
+              ? {
+                  ...l,
+                  items: l.items.map((i) =>
+                    i.id === itemId ? { ...i, ...patch } : i
+                  ),
+                }
+              : l
+          ),
+        })),
+
+      swapItems: (listId, indexA, indexB) =>
+        set((state) => ({
+          lists: state.lists.map((l) => {
+            if (l.id !== listId) return l
+            const items = [...l.items]
+            ;[items[indexA], items[indexB]] = [items[indexB], items[indexA]]
+            return { ...l, items }
+          }),
+        })),
+    }),
+    { name: 'traclock-lists' }
+  )
+)
+```
+
+- [ ] **Step 2: Verify TypeScript compiles**
+
+```bash
+npm run build
+```
+
+Expected: no TypeScript errors.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add src/stores
+git commit -m "feat: add Zustand store for lists and todo items"
+```
+
+---
+
+## Task 4: App Shell & Routing
+
+**Files:**
+- Modify: `src/main.tsx`
+- Create: `src/App.tsx`
+- Create: `src/pages/HomePage.tsx` (stub)
+- Create: `src/pages/ListDetailPage.tsx` (stub)
+
+- [ ] **Step 1: Replace `src/App.tsx`**
+
+```tsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HomePage } from './pages/HomePage'
+import { ListDetailPage } from './pages/ListDetailPage'
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/list/:listId" element={<ListDetailPage />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
+```
+
+- [ ] **Step 2: Create stub `src/pages/HomePage.tsx`**
+
+```tsx
+export function HomePage() {
+  return <div>Home</div>
+}
+```
+
+- [ ] **Step 3: Create stub `src/pages/ListDetailPage.tsx`**
+
+```tsx
+export function ListDetailPage() {
+  return <div>Detail</div>
+}
+```
+
+- [ ] **Step 4: Update `src/main.tsx`**
+
+```tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+)
+```
+
+- [ ] **Step 5: Verify dev server starts**
+
+```bash
+npm run dev
+```
+
+Navigate to `http://localhost:5173` — expect blank "Home" text with no console errors.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/App.tsx src/main.tsx src/pages
+git commit -m "feat: add React Router shell with Home and Detail page stubs"
+```
