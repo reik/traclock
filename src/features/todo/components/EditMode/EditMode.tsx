@@ -55,6 +55,7 @@ export function EditMode({ listId, items }: EditModeProps) {
         <h2 className="font-semibold text-gray-700">Add Item</h2>
         <input
           {...addForm.register('description')}
+          type="text"
           placeholder="Description"
           className="w-full border rounded px-3 py-2"
         />
@@ -104,6 +105,7 @@ export function EditMode({ listId, items }: EditModeProps) {
               >
                 <input
                   {...editForm.register('description')}
+                  type="text"
                   className="w-full border rounded px-3 py-2"
                 />
                 {editForm.formState.errors.description && (

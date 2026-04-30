@@ -11,20 +11,12 @@ export function ViewMode({ items }: ViewModeProps) {
   const { currentIndex, secondsLeft, isRunning, isComplete, start, goNext } =
     useTimer(items)
 
-  if (items.length === 0) {
-    return (
-      <p className="text-gray-400 text-center py-12">
-        No items. Switch to Edit mode to add items.
-      </p>
-    )
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex gap-3">
         <button
           onClick={start}
-          disabled={isRunning}
+          disabled={isRunning || items.length === 0}
           className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50"
         >
           {isComplete ? 'Restart' : 'Start'}
@@ -38,6 +30,12 @@ export function ViewMode({ items }: ViewModeProps) {
           </button>
         )}
       </div>
+
+      {items.length === 0 && (
+        <p className="text-gray-400 text-center py-8">
+          No items. Switch to Edit mode to add items.
+        </p>
+      )}
 
       {isComplete && (
         <div className="p-4 bg-green-100 text-green-800 rounded-lg font-semibold text-center text-lg">
