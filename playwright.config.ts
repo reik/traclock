@@ -9,7 +9,13 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
+        { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
   ],
   webServer: {
     command: 'npm run dev',
