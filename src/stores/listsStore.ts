@@ -8,8 +8,9 @@ interface ListsState {
   deleteList: (id: string) => void
   addItem: (listId: string, item: Omit<TodoItem, 'id'>) => void
   deleteItem: (listId: string, itemId: string) => void
-  updateItem: (listId: string, itemId: string, patch: Omit<TodoItem, 'id'>) => void
+  updateItem: (listId: string, itemId: string, patch: Partial<Omit<TodoItem, 'id'>>) => void
   swapItems: (listId: string, indexA: number, indexB: number) => void
+  reorderItems: (listId: string, fromIndex: number, toIndex: number) => void
 }
 
 export const useListsStore = create<ListsState>()(
@@ -37,7 +38,13 @@ export const useListsStore = create<ListsState>()(
         set((state) => ({
           lists: state.lists.map((l) =>
             l.id === listId
-              ? { ...l, items: [...l.items, { id: crypto.randomUUID(), ...item }] }
+              ? {
+                  ...l,
+                  items: [
+                    ...l.items,
+                    { alertSound: 'chime' as const, ...item, id: crypto.randomUUID() },
+                  ],
+                }
               : l
           ),
         })),
@@ -71,6 +78,17 @@ export const useListsStore = create<ListsState>()(
             if (l.id !== listId) return l
             const items = [...l.items]
             ;[items[indexA], items[indexB]] = [items[indexB], items[indexA]]
+            return { ...l, items }
+          }),
+        })),
+
+      reorderItems: (listId, fromIndex, toIndex) =>
+        set((state) => ({
+          lists: state.lists.map((l) => {
+            if (l.id !== listId) return l
+            const items = [...l.items]
+            const [moved] = items.splice(fromIndex, 1)
+            items.splice(toIndex, 0, moved)
             return { ...l, items }
           }),
         })),
