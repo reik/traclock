@@ -31,3 +31,13 @@ export function playCompleteSound(): void {
   setTimeout(() => playTone(659, 0.3, 'sine', 0.5), 300)
   setTimeout(() => playTone(784, 0.5, 'sine', 0.5), 600)
 }
+
+export function playBellSound(): void {
+  playTone(1047, 0.05, 'sine', 0.5)
+  setTimeout(() => playTone(1047, 0.8, 'sine', 0.3), 50)
+}
+
+export function playBeepSound(): void {
+  playTone(880, 0.08, 'square', 0.2)
+  setTimeout(() => playTone(880, 0.08, 'square', 0.2), 150)
+}
