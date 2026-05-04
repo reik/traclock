@@ -8,6 +8,8 @@ vi.mock('../utils/sound', () => ({
   playWarningSound: vi.fn(),
   playNextSound: vi.fn(),
   playCompleteSound: vi.fn(),
+  playBellSound: vi.fn(),
+  playBeepSound: vi.fn(),
 }))
 
 beforeEach(() => {
@@ -16,7 +18,7 @@ beforeEach(() => {
       {
         id: 'list-1',
         name: 'Morning Routine',
-        items: [{ id: 'i1', description: 'Stretch', durationSeconds: 120 }],
+        items: [{ id: 'i1', description: 'Stretch', durationSeconds: 120, alertSound: 'chime' }],
         createdAt: 0,
       },
     ],

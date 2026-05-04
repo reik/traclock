@@ -1,26 +1,39 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useListsStore } from '../stores/listsStore'
-import { todoListSchema, type TodoListFormData } from '../schemas'
+import { useState, useActionState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useListsStore } from "../stores/listsStore";
+import { todoListSchema, type TodoListFormData } from "../schemas";
 
 export function HomePage() {
-  const { lists, addList, deleteList } = useListsStore()
-  const navigate = useNavigate()
-  const [showForm, setShowForm] = useState(false)
+  const { lists, addList, deleteList } = useListsStore();
+  const navigate = useNavigate();
+  const [showForm, setShowForm] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<TodoListFormData>({ resolver: zodResolver(todoListSchema) })
+  } = useForm<TodoListFormData>({ resolver: zodResolver(todoListSchema) });
 
   const onSubmit = (data: TodoListFormData) => {
-    addList(data.name)
-    reset()
-    setShowForm(false)
+    addList(data.name);
+    reset();
+    setShowForm(false);
+  };
+
+  const [state, formAction, isPending] = useActionState(submitFormAction, {
+    message: null,
+  });
+
+  async function submitFormAction(prevState, formData) {
+    // Simulate API call
+    const email = formData.get("email");
+    if (email === "error@example.com") {
+      return { message: "Email is already taken." };
+    }
+    return { message: "Success! User registered." };
   }
 
   return (
@@ -38,11 +51,12 @@ export function HomePage() {
 
         {showForm && (
           <form
+            action={formAction}
             onSubmit={handleSubmit(onSubmit)}
             className="mb-6 p-4 bg-white rounded-lg shadow space-y-2"
           >
             <input
-              {...register('name')}
+              {...register("name")}
               placeholder="List name"
               className="w-full border rounded px-3 py-2"
               autoFocus
@@ -52,14 +66,19 @@ export function HomePage() {
             )}
             <div className="flex gap-2">
               <button
+                disabled={isPending}
                 type="submit"
                 className="px-4 py-2 bg-blue-600 text-white rounded"
               >
                 Create
               </button>
               <button
+                disabled={isPending}
                 type="button"
-                onClick={() => { setShowForm(false); reset() }}
+                onClick={() => {
+                  setShowForm(false);
+                  reset();
+                }}
                 className="px-4 py-2 bg-gray-200 rounded"
               >
                 Cancel
@@ -100,5 +119,5 @@ export function HomePage() {
         )}
       </div>
     </div>
-  )
+  );
 }
