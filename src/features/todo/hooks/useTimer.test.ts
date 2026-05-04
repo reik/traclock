@@ -8,11 +8,13 @@ vi.mock('../../../utils/sound', () => ({
   playWarningSound: vi.fn(),
   playNextSound: vi.fn(),
   playCompleteSound: vi.fn(),
+  playBellSound: vi.fn(),
+  playBeepSound: vi.fn(),
 }))
 
 const ITEMS: TodoItem[] = [
-  { id: 'a', description: 'Task A', durationSeconds: 15 },
-  { id: 'b', description: 'Task B', durationSeconds: 10 },
+  { id: 'a', description: 'Task A', durationSeconds: 15, alertSound: 'chime' },
+  { id: 'b', description: 'Task B', durationSeconds: 10, alertSound: 'chime' },
 ]
 
 beforeEach(() => {

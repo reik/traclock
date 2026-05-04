@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { playWarningSound, playNextSound, playCompleteSound } from '../../../utils/sound'
+import { playWarningSound, playNextSound, playCompleteSound, playBellSound, playBeepSound } from '../../../utils/sound'
+import type { AlertSound } from '../../../types'
+
+function playAlertSound(sound: AlertSound): void {
+  if (sound === 'chime') playNextSound()
+  else if (sound === 'bell') playBellSound()
+  else if (sound === 'beep') playBeepSound()
+}
 import type { TodoItem } from '../../../types'
 
 interface TimerState {
@@ -42,7 +49,7 @@ export function useTimer(items: TodoItem[]): UseTimerReturn {
       const nextIndex = s.currentIndex + 1
       const currentItems = itemsRef.current
       if (nextIndex < currentItems.length) {
-        playNextSound()
+        playAlertSound(currentItems[s.currentIndex].alertSound)
         warningPlayedRef.current = false
         return {
           currentIndex: nextIndex,
@@ -77,7 +84,7 @@ export function useTimer(items: TodoItem[]): UseTimerReturn {
             playCompleteSound()
             return { ...s, isRunning: false, isComplete: true }
           }
-          playNextSound()
+          playAlertSound(currentItems[s.currentIndex].alertSound)
           warningPlayedRef.current = false
           return {
             currentIndex: nextIndex,
