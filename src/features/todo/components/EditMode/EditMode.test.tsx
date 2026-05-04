@@ -13,8 +13,8 @@ beforeEach(() => {
         id: LIST_ID,
         name: 'Test',
         items: [
-          { id: 'i1', description: 'First task', durationSeconds: 60 },
-          { id: 'i2', description: 'Second task', durationSeconds: 30 },
+          { id: 'i1', description: 'First task', durationSeconds: 60, alertSound: 'chime' },
+          { id: 'i2', description: 'Second task', durationSeconds: 30, alertSound: 'bell' },
         ],
         createdAt: 0,
       },
@@ -56,14 +56,20 @@ describe('EditMode', () => {
     expect(useListsStore.getState().lists[0].items[0].description).toBe('Second task')
   })
 
-  it('should_swap_items_up', async () => {
+  it('should_show_alert_sound_selector_per_item', () => {
     renderEdit()
-    const upButtons = screen.getAllByRole('button', { name: /move up/i })
+    const selects = screen.getAllByRole('combobox', { name: /alert sound/i })
+    expect(selects).toHaveLength(2)
+    expect(selects[0]).toHaveValue('chime')
+    expect(selects[1]).toHaveValue('bell')
+  })
+
+  it('should_update_alert_sound_on_change', async () => {
+    renderEdit()
+    const selects = screen.getAllByRole('combobox', { name: /alert sound/i })
     await act(async () => {
-      fireEvent.click(upButtons[1])
+      fireEvent.change(selects[0], { target: { value: 'beep' } })
     })
-    const items = useListsStore.getState().lists[0].items
-    expect(items[0].description).toBe('Second task')
-    expect(items[1].description).toBe('First task')
+    expect(useListsStore.getState().lists[0].items[0].alertSound).toBe('beep')
   })
 })
